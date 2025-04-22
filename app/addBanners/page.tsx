@@ -167,7 +167,7 @@ export default function AddBanners() {
 
   return (
     <div className="p-12 space-y-4 max-w-8xl mx-auto">
-      <h1 className="text-2xl font-semibold text-[#013DC0] mb-4">Upload Banner</h1>
+      <h1 className="text-2xl font-semibold text-black mb-4">Upload Banner</h1>
       <p className="text-sm text-[#262626] mb-2">Upload the banner you want to display</p>
       
       <div className="mb-4">
@@ -187,14 +187,14 @@ export default function AddBanners() {
       {!file && <p className="text-red-600 text-sm mb-6">No banner is uploaded</p>}
 
       <Card 
-        className={`border-dashed border-2 ${isDragging ? 'border-[#C10001]' : 'border-[#4361EE]'} 
+        className={`border-dashed border-2 ${isDragging ? 'border-black' : 'border-black'} 
         rounded-lg p-8 text-center cursor-pointer bg-transparent`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="w-16 h-16 bg-[#013DC0] rounded-full flex items-center justify-center">
+          <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center">
             <svg 
               className="w-8 h-8 text-white"
               fill="none"
@@ -212,7 +212,7 @@ export default function AddBanners() {
           <p className="text-[#262626]">Drag & Drop files here</p>
           <Button 
             variant="destructive" 
-            className="bg-[#4361EE] cursor-pointer w-40 text-white"
+            className="bg-black hover:bg-gray-800 cursor-pointer w-40 text-white"
             onClick={() => document.getElementById('fileInput')?.click()}
           >
             Browse Files
@@ -235,7 +235,7 @@ export default function AddBanners() {
           <p className="text-[#262626] mb-2">Selected file: {file.name}</p>
           <Button 
             variant="destructive" 
-            className="bg-[#4361EE] hover:bg-[#3451DE] text-white w-40 "
+            className="bg-black hover:bg-[#3451DE] text-white w-40 "
             onClick={handleUpload}
             disabled={!bannerTitle.trim()}
           >

@@ -19,6 +19,9 @@ import {
 import { CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Cookies from "js-cookie";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import axios from "axios";
 
 interface ReferralCode {
   id: string;
@@ -42,6 +45,13 @@ export default function ReferralCodeManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [formData, setFormData] = useState({
+    userName: "",
+    phoneNumber: "",
+    city: "",
+    role: "USER"
+  });
 
   useEffect(() => {
     fetchReferralCodes();
@@ -62,6 +72,38 @@ export default function ReferralCodeManagement() {
       setReferralCodes([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateReferral = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsGenerating(true);
+    const token = Cookies.get("token");
+
+    try {
+      await axios.post(
+        'https://server.sivagroupmanpower.com/api/v1/referral/generate',
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      
+      // Reset form and refresh the list
+      setFormData({
+        userName: "",
+        phoneNumber: "",
+        city: "",
+        role: "USER"
+      });
+      fetchReferralCodes();
+      window.location.reload();
+    } catch (error) {
+      console.error('Error generating referral code:', error);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -86,9 +128,62 @@ export default function ReferralCodeManagement() {
 
   return (
     <div className="p-12 space-y-4 max-w-8xl mx-auto">
-      <CardTitle className="text-2xl font-medium mb-6 ml-6 text-[#003CBF]">
-        Referral Code Management
-      </CardTitle>
+      <div className="flex justify-between items-center mb-6 ml-6">
+        <CardTitle className="text-2xl font-medium">
+          Referral Code Management
+        </CardTitle>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="bg-black text-white hover:bg-gray-800">
+              Generate New Referral
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Generate Referral Code</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleGenerateReferral} className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Username</label>
+                <Input
+                  required
+                  value={formData.userName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, userName: e.target.value }))}
+                  placeholder="Enter username"
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Phone Number</label>
+                <Input
+                  required
+                  value={formData.phoneNumber}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                  placeholder="+919290201010"
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">City</label>
+                <Input
+                  required
+                  value={formData.city}
+                  onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                  placeholder="Enter city"
+                  className="w-full"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full bg-black text-white hover:bg-gray-800"
+                disabled={isGenerating}
+              >
+                {isGenerating ? "Generating..." : "Generate Referral Code"}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
       <CardContent>
         {/* Filter Buttons and Search Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0 mb-8">
@@ -103,8 +198,8 @@ export default function ReferralCodeManagement() {
                 onClick={() => setActiveFilter(filter.value)}
                 className={`px-4 py-1 rounded-full font-medium ${
                   activeFilter === filter.value
-                    ? "bg-[#003CBF] text-white"
-                    : "bg-transparent border border-[#003CBF] text-[#003CBF]"
+                    ? "bg-black text-white"
+                    : "bg-transparent border border-black text-black"
                 }`}
               >
                 {filter.label}
@@ -126,7 +221,7 @@ export default function ReferralCodeManagement() {
         {/* Referral Codes Table */}
         <div className="border border-slate-200 rounded-md overflow-auto">
           <Table>
-            <TableHeader className="bg-[#E8F1FD]">
+            <TableHeader className="bg-black text-white">
               <TableRow className="border-slate-200">
                 <TableHead className="border-slate-200">S.No.</TableHead>
                 <TableHead className="border-slate-200">Username</TableHead>

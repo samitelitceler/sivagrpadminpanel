@@ -136,7 +136,7 @@ export default function ProfessionalManagement() {
 
   return (
     <div className="p-12 space-y-4 max-w-8xl mx-auto ">
-      <CardTitle className="text-2xl font-medium mb-6 ml-6 text-[#003CBF]">
+      <CardTitle className="text-2xl font-medium mb-6 ml-6">
         Professional Management
       </CardTitle>
       <CardContent>
@@ -154,8 +154,8 @@ export default function ProfessionalManagement() {
                 onClick={() => setActiveFilter(filter.value)}
                 className={`px-4 py-1 rounded-full font-medium ${
                   activeFilter === filter.value
-                    ? "bg-[#003CBF] text-white"
-                    : "bg-transparent border border-[#003CBF] text-[#003CBF]"
+                    ? "bg-black text-white"
+                    : "bg-transparent border border-gray-500 text-black"
                 }`}
               >
                 {filter.label}
@@ -177,7 +177,7 @@ export default function ProfessionalManagement() {
         {/* Professionals Table */}
         <div className="border border-slate-200 rounded-md overflow-auto">
           <Table>
-            <TableHeader className="bg-[#E8F1FD]">
+            <TableHeader className="bg-black text-white">
               <TableRow className="border-slate-200">
                 <TableHead className="border-slate-200">S.No.</TableHead>
                 <TableHead className="border-slate-200">Full Name</TableHead>
@@ -232,7 +232,7 @@ export default function ProfessionalManagement() {
                     <TableCell className="border-slate-200">
                       <button
                         onClick={() => router.push(`/professionalDetails?id=${professional?.id}`)}
-                        className="px-4 py-1 bg-[#003CBF] text-white rounded-md hover:bg-blue-700 transition-colors"
+                        className="px-4 py-1 bg-black text-white rounded-md hover:bg-gray-700 transition-colors"
                       >
                         View More
                       </button>

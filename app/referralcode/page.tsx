@@ -190,8 +190,8 @@ export default function ReferralCodeManagement() {
           <div className="flex flex-wrap gap-3">
             {[
               { label: "All Referrals", value: "all" },
-              { label: "Verified", value: "verified" },
-              { label: "Pending", value: "pending" },
+            //   { label: "Verified", value: "verified" },
+            //   { label: "Pending", value: "pending" },
             ].map((filter) => (
               <button
                 key={filter.value}
@@ -230,7 +230,7 @@ export default function ReferralCodeManagement() {
                 <TableHead className="border-slate-200">City</TableHead>
                 <TableHead className="border-slate-200">Total Referred</TableHead>
                 <TableHead className="border-slate-200">Total Earnings</TableHead>
-                <TableHead className="border-slate-200">Status</TableHead>
+                {/* <TableHead className="border-slate-200">Status</TableHead> */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -256,7 +256,7 @@ export default function ReferralCodeManagement() {
                     <TableCell className="border-slate-200">{code?.city || 'N/A'}</TableCell>
                     <TableCell className="border-slate-200">{code?.totalReferred || 0}</TableCell>
                     <TableCell className="border-slate-200">₹{code?.totalEarnings || '0'}</TableCell>
-                    <TableCell className="border-slate-200">
+                    {/* <TableCell className="border-slate-200">
                       <span className={`px-2 py-1 rounded-full text-sm ${
                         code?.status === 'VERIFIED' 
                           ? 'bg-green-100 text-green-800'
@@ -264,7 +264,7 @@ export default function ReferralCodeManagement() {
                       }`}>
                         {code?.status || 'PENDING'}
                       </span>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))
               )}

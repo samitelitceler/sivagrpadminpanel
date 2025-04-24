@@ -18,8 +18,8 @@ import {
 } from "@/components/ui/pagination";
 import { CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 // import { MapPin } from "lucide-react";
-import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import axios from "axios";
 
@@ -48,7 +48,6 @@ export default function ProfessionalManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const router = useRouter();
 
   useEffect(() => {
     fetchProfessionals();
@@ -230,12 +229,32 @@ export default function ProfessionalManagement() {
                       )}
                     </TableCell>
                     <TableCell className="border-slate-200">
-                      <button
-                        onClick={() => router.push(`/professionalDetails?id=${professional?.id}`)}
-                        className="px-4 py-1 bg-black text-white rounded-md hover:bg-gray-700 transition-colors"
-                      >
-                        View More
-                      </button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <button className="px-4 py-1 bg-black text-white rounded-md hover:bg-gray-700 transition-colors">
+                            View Details
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>{professional.fullName} – Details</DialogTitle>
+                          </DialogHeader>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div><span className="font-semibold">Referral Code:</span> {professional.referralCode}</div>
+                            <div><span className="font-semibold">Email:</span> {professional.email}</div>
+                            <div><span className="font-semibold">Phone:</span> {professional.phoneNumber}</div>
+                            <div><span className="font-semibold">WhatsApp:</span> {professional.whatsappNumber}</div>
+                            <div><span className="font-semibold">Alternate Phone:</span> {professional.alternatePhoneNumber}</div>
+                            <div><span className="font-semibold">Age:</span> {professional.age}</div>
+                            <div><span className="font-semibold">Service Type:</span> {professional.serviceType}</div>
+                            <div><span className="font-semibold">Experience:</span> {professional.workingExperience}</div>
+                            <div><span className="font-semibold">Permanent Address:</span> {professional.permanentAddress}</div>
+                            <div><span className="font-semibold">Current Address:</span> {professional.currentAddress}</div>
+                            <div><span className="font-semibold">Status:</span> {professional.status}</div>
+                            <div><span className="font-semibold">Registered On:</span> {new Date(professional.createdAt).toLocaleString()}</div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </TableCell>
                   </TableRow>
                 ))

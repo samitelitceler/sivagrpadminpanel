@@ -76,7 +76,7 @@ export default function ProfessionalManagement() {
     const token = Cookies.get("token");
     try {
       await axios.put(
-        `https://server.sivagroupmanpower.com/api/v1/registration-form/approve?id=${id}`, 
+        `https://server.sivagroupmanpower.com/api/v1/registration-form?id=${id}`, 
         { status: "APPROVED" },
         {
           headers: {
@@ -94,7 +94,7 @@ export default function ProfessionalManagement() {
     const token = Cookies.get("token");
     try {
       await axios.put(
-        `https://server.sivagroupmanpower.com/api/v1/registration-form/reject?id=${id}`, 
+        `https://server.sivagroupmanpower.com/api/v1/registration-form?id=${id}`, 
         { status: "REJECTED" },
         {
           headers: {

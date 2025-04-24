@@ -230,7 +230,7 @@ export default function ReferralCodeManagement() {
                 <TableHead className="border-slate-200">City</TableHead>
                 <TableHead className="border-slate-200">Total Referred</TableHead>
                 <TableHead className="border-slate-200">Total Earnings</TableHead>
-                {/* <TableHead className="border-slate-200">Status</TableHead> */}
+                <TableHead className="border-slate-200">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -256,15 +256,36 @@ export default function ReferralCodeManagement() {
                     <TableCell className="border-slate-200">{code?.city || 'N/A'}</TableCell>
                     <TableCell className="border-slate-200">{code?.totalReferred || 0}</TableCell>
                     <TableCell className="border-slate-200">₹{code?.totalEarnings || '0'}</TableCell>
-                    {/* <TableCell className="border-slate-200">
-                      <span className={`px-2 py-1 rounded-full text-sm ${
-                        code?.status === 'VERIFIED' 
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {code?.status || 'PENDING'}
-                      </span>
-                    </TableCell> */}
+                    <TableCell className="border-slate-200">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button className="text-black underline p-0">View Details</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Referral Details</DialogTitle>
+                          </DialogHeader>
+                          <table className="w-full mt-4 text-center">
+                            <thead>
+                              <tr>
+                                <th className="py-2">Person Name</th>
+                                <th className="py-2">Mobile No</th>
+                                <th className="py-2">Referral Code</th>
+                                <th className="py-2">Total Referred</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td className="py-2">{code?.userName}</td>
+                                <td className="py-2">{code?.phoneNumber}</td>
+                                <td className="py-2">{code?.code}</td>
+                                <td className="py-2">{code?.totalReferred}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </DialogContent>
+                      </Dialog>
+                    </TableCell>
                   </TableRow>
                 ))
               )}

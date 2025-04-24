@@ -1,67 +1,20 @@
 "use client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from "chart.js";
-import { Bar } from "react-chartjs-2";
-// import Cookies from "js-cookie";
-// import { useRouter } from "next/navigation";
-// import { useEffect } from "react";
-import { BellIcon, ShoppingBag, Users, DollarSign, LineChart } from 'lucide-react';
+import { BellIcon, Users } from 'lucide-react';
+import { useState, useEffect } from "react"
+import Cookies from "js-cookie"
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
-// interface SalonDistribution {
-//   _count: {
-//     salonID: number;
-//   };
-//   verification: string;
-// }
-
-// interface DashboardData {
-//   overview: {
-//     totalSalons: {
-//       count: number;
-//       distribution: SalonDistribution[];
-//     };
-//     totalUsers: number;
-//     totalBookings: {
-//       count: number;
-//     };
-//     totalRevenue: number;
-//   };
-//   charts: {
-//     monthlyRevenue: {
-//       month: string;
-//       revenue: number;
-//     }[];
-//   };
-//   totalOrders: number;
-//   monthlySales: number;
-//   totalCustomers: number;
-//   dailyRevenue: number;
-//   salesData: {
-//     labels: string[];
-//     values: number[];
-//   };
-//   revenueData: {
-//     labels: string[];
-//     values: number[];
-//   };
-//   recentOrders: Array<{
-//     id: number;
-//     orderId: string;
-//     name: string;
-//     product: string;
-//     status: 'Delivered' | 'Pending' | 'Cancelled';
-//     date: string;
-//   }>;
-// }
-
+const serviceList = [
+  "Stewards", "Security Services", "Corporate Manpower Supply",
+  "Valet Driver", "Bouncers", "House Keeping",
+  "Kitchen Stewards", "Chefs"
+];
 
 const Home = () => {
-  // const router = useRouter();
-  // const [loading, setLoading] = useState(true);
-  // const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  // const [todayStats, setTodayStats] = useState<TodayStats | null>(null);
+  const [serviceCounts, setServiceCounts] = useState<Record<string,number>>({})
   const currentDate = new Date().toLocaleDateString('en-US', { 
     day: '2-digit',
     month: '2-digit',
@@ -69,92 +22,55 @@ const Home = () => {
     weekday: 'long'
   });
 
-  // useEffect(() => {
-  //   const token = Cookies.get("token");
-  //   if (!token) {
-  //     router.push("/login");
-  //   } else {
-  //     // fetchDashboardData();
-  //     // fetchTodayStats();
-  //   }
-  // }, []);
+  useEffect(() => {
+    fetchServiceUsage()
+  }, []);
 
-  // const fetchDashboardData = async () => {
-  //   const token = Cookies.get("token");
-  //   try {
-  //     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/admin/dashboard`, {
-  //       headers: {
-  //         'Authorization': `Bearer ${token}`
-  //       }
-  //     });
-  //     // const data = await response.json();
-  //     // setDashboardData(data.data);
-  //   } catch (error) {
-  //     console.error('Error fetching dashboard data:', error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
+  /** Fetch all professionals and group them by serviceType */
+  const fetchServiceUsage = async () => {
+    const token = Cookies.get("token");
+    try {
+      const res = await fetch(
+        'https://server.sivagroupmanpower.com/api/v1/registration-form',
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      )
+      const json = await res.json()
+      const profs: Array<{ serviceType: string }> = json.data || []
+
+      // init counts
+      const counts: Record<string,number> = {}
+      serviceList.forEach(s => counts[s] = 0)
+
+      // tally
+      profs.forEach(p => {
+        if (p.serviceType && counts[p.serviceType] !== undefined) {
+          counts[p.serviceType] += 1
+        }
+      })
+      setServiceCounts(counts)
+
+    } catch (err) {
+      console.error("Error loading service usage", err)
+    }
+  }
+
+  // const salesComparisonData = {
+  //   labels: ['Mon', 'Tue', 'Wed', 'Thurs', 'Fri', 'Sat', 'Sun'],
+  //   datasets: [{
+  //     label: 'Sales',
+  //     data: [20, 28, 10, 45, 30, 35, 18],
+  //     backgroundColor: '#98E165',
+  //   }]
   // };
 
-  // const fetchTodayStats = async () => {
-  //   // const token = Cookies.get("token");
-  //   try {
-  //     // const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/admin/dashboard/today-stats`, {
-  //     //   headers: {
-  //     //     'Authorization': `Bearer ${token}`
-  //     //   }
-  //     // });
-  //     // const data = await response.json();
-  //     // setTodayStats(data.data.summary);
-  //   } catch (error) {
-  //     console.error('Error fetching today\'s stats:', error);
-  //   }
+  // const revenueTrackData = {
+  //   labels: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
+  //   datasets: [{
+  //     label: 'Revenue',
+  //     data: [18, 38, 35, 45, 28, 38, 35],
+  //     backgroundColor: '#FFD700',
+  //   }]
   // };
-
-  // const revenueData = {
-  //   labels: ["Pending", "Approved", "Rejected"],
-  //   datasets: [
-  //     {
-  //       data: [
-  //         dashboardData?.overview.totalSalons.distribution.find((d: SalonDistribution) => d.verification === "PENDING")?._count.salonID || 0,
-  //         dashboardData?.overview.totalSalons.distribution.find((d: SalonDistribution) => d.verification === "APPROVED")?._count.salonID || 0,
-  //         dashboardData?.overview.totalSalons.distribution.find((d: SalonDistribution) => d.verification === "REJECTED")?._count.salonID || 0,
-  //       ],
-  //       backgroundColor: ["#E8F1FD", "#013DC0", "#FF5733"],
-  //     },
-  //   ],
-  // };
-
-  // const totalRevenueData = {
-  //   labels: dashboardData?.charts.monthlyRevenue.map((item) => item.month) || [],
-  //   datasets: [
-  //     {
-  //       label: "Monthly Revenue",
-  //       data: dashboardData?.charts.monthlyRevenue.map((item) => item.revenue) || [],
-  //       backgroundColor: "#013DC0",
-  //     },
-  //   ],
-  // };
-
-  const salesComparisonData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thurs', 'Fri', 'Sat', 'Sun'],
-    datasets: [{
-      label: 'Sales',
-      data: [20, 28, 10, 45, 30, 35, 18],
-      backgroundColor: '#98E165',
-    }]
-  };
-
-  const revenueTrackData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun'],
-    datasets: [{
-      label: 'Revenue',
-      data: [18, 38, 35, 45, 28, 38, 35],
-      backgroundColor: '#FFD700',
-    }]
-  };
-
-  // if (loading) return <p className="text-center mt-20">Loading...</p>;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -183,31 +99,7 @@ const Home = () => {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-3xl font-bold">120</h2>
-                <p className="text-gray-600">Total Orders Today</p>
-              </div>
-              <ShoppingBag className="h-8 w-8 text-gray-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white rounded-lg shadow">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-3xl font-bold">4120</h2>
-                <p className="text-gray-600">Monthly Sales</p>
-              </div>
-              <LineChart className="h-8 w-8 text-gray-400" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white rounded-lg shadow">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-3xl font-bold">24</h2>
-                <p className="text-gray-600">Total Customers Today</p>
+                <p className="text-gray-600">Total Man Power</p>
               </div>
               <Users className="h-8 w-8 text-gray-400" />
             </div>
@@ -218,35 +110,60 @@ const Home = () => {
           <CardContent className="p-4">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-3xl font-bold">32k</h2>
-                <p className="text-gray-600">Daily Revenue</p>
+                <h2 className="text-3xl font-bold">4120</h2>
+                <p className="text-gray-600">Toal Users</p>
               </div>
-              <DollarSign className="h-8 w-8 text-gray-400" />
+              <Users className="h-8 w-8 text-gray-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white rounded-lg shadow">
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-3xl font-bold">24</h2>
+                <p className="text-gray-600">Approved Manpower</p>
+              </div>
+              <Users className="h-8 w-8 text-gray-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white rounded-lg shadow">
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-3xl font-bold">32</h2>
+                <p className="text-gray-600">Rejected Manpower</p>
+              </div>
+              <Users className="h-8 w-8 text-gray-400" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        <Card className="bg-white rounded-lg shadow">
-          <CardHeader>
-            <CardTitle>Sales Comparison Graph</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Bar data={salesComparisonData} options={{ responsive: true }} />
-          </CardContent>
-        </Card>
+      {/* Services Usage Section */}
+      <Card className="bg-white rounded-lg shadow mb-6">
+        <CardHeader>
+          <CardTitle>Service Usage</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-4 gap-4">
+          {serviceList.map(service => (
+            <div
+              key={service}
+              className="flex flex-col items-center justify-center border border-gray-100 p-4 rounded"
+            >
+              <span className="text-2xl font-bold">
+                {serviceCounts[service] ?? 0}
+              </span>
+              <span className="text-gray-600 text-center">{service}</span>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
-        <Card className="bg-white rounded-lg shadow">
-          <CardHeader>
-            <CardTitle>Revenue Track</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Bar data={revenueTrackData} options={{ responsive: true }} />
-          </CardContent>
-        </Card>
-      </div>
+    
 
       {/* Orders Table */}
       <Card className="bg-white rounded-lg shadow">

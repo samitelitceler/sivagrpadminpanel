@@ -1,105 +1,152 @@
-"use client"
-import { useState } from 'react';
-import { Search } from 'lucide-react';
+"use client";
+
+import { useState } from "react";
+import { CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Search } from "lucide-react";
 
 interface User {
-  sNo: number;
+  id: number;
   customerId: string;
   customerName: string;
   phoneNo: string;
   location: string;
+  previousBookings: number;
 }
 
 export default function Users() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
-  const [sortBy, setSortBy] = useState('All');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
+  // Sample data
   const users: User[] = [
-    { sNo: 1, customerId: 'OA12345', customerName: 'Pragati', phoneNo: '123456789', location: 'Hyderabad' },
-    { sNo: 2, customerId: 'OA12345', customerName: 'Pragati', phoneNo: '123456789', location: 'Hyderabad' },
-    { sNo: 3, customerId: 'OA12345', customerName: 'Pragati', phoneNo: '123456789', location: 'Hyderabad' },
-    { sNo: 4, customerId: 'OA12345', customerName: 'Pragati', phoneNo: '123456789', location: 'Hyderabad' },
-    { sNo: 5, customerId: 'OA12345', customerName: 'Pragati', phoneNo: '123456789', location: 'Hyderabad' },
-    { sNo: 6, customerId: 'OA12345', customerName: 'Pragati', phoneNo: '123456789', location: 'Hyderabad' },
-    { sNo: 7, customerId: 'OA12345', customerName: 'Pragati', phoneNo: '123456789', location: 'Hyderabad' },
-    { sNo: 8, customerId: 'OA12345', customerName: 'Pragati', phoneNo: '123456789', location: 'Hyderabad' },
-    { sNo: 9, customerId: 'OA12345', customerName: 'Pragati', phoneNo: '123456789', location: 'Hyderabad' },
+    { id: 1, customerId: "OA12345", customerName: "Pragati", phoneNo: "123456789", location: "Hyderabad", previousBookings: 3 },
+    { id: 2, customerId: "OA12346", customerName: "Rahul",   phoneNo: "987654321", location: "Mumbai",    previousBookings: 1 },
+    { id: 3, customerId: "OA12347", customerName: "Sneha",   phoneNo: "912345678", location: "Delhi",     previousBookings: 2 },
+    // ...more users
   ];
 
+  // Filter by name
+  const filtered = users.filter(user =>
+    user.customerName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Pagination logic
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const pageData = filtered.slice(startIndex, startIndex + itemsPerPage);
+
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Users</h1>
-      
-      {/* Filters */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <span>Select date</span>
-          <Input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-40"
-          />
-        </div>
-        <div className="flex items-center gap-4">
-          <span>Sort by</span>
-          <select 
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="border rounded-md p-2"
-          >
-            <option>All</option>
-            <option>Name</option>
-            <option>Location</option>
-          </select>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+    <div className="p-12 space-y-4 max-w-6xl mx-auto">
+      <CardTitle className="text-2xl font-medium mb-4 ml-6">
+        Users
+      </CardTitle>
+
+      <CardContent>
+        {/* Search Bar */}
+        <div className="relative max-w-sm mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <Input
             type="text"
-            placeholder="Search"
-            className="pl-10 w-[300px]"
+            placeholder="Search by customer name"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="pl-10 w-full"
           />
         </div>
-      </div>
 
-      {/* Users Table */}
-      <div className="bg-white rounded-lg shadow">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">SNo</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Customer ID</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Customer Name</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Phone no.</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Location</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {users.map((user) => (
-              <tr key={user.sNo} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm text-gray-500">{user.sNo}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">{user.customerId}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">{user.customerName}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">{user.phoneNo}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">{user.location}</td>
-                <td className="px-6 py-4">
-                  {user.sNo === 1 ? (
-                    <button className="text-blue-600 hover:text-blue-800">View more</button>
-                  ) : (
-                    <button className="text-blue-600 hover:text-blue-800">Invoice</button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+        {/* Users Table */}
+        <div className="overflow-auto rounded border border-slate-200">
+          <Table>
+            <TableHeader className="bg-black text-white">
+              <TableRow>
+                <TableHead className="border-slate-200">S.No.</TableHead>
+                <TableHead className="border-slate-200">Customer ID</TableHead>
+                <TableHead className="border-slate-200">Customer Name</TableHead>
+                <TableHead className="border-slate-200">Phone No.</TableHead>
+                <TableHead className="border-slate-200">Location</TableHead>
+                <TableHead className="border-slate-200">Prev. Bookings</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pageData.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-4">
+                    No users found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                pageData.map((user, idx) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="border-slate-200">
+                      {startIndex + idx + 1}
+                    </TableCell>
+                    <TableCell className="border-slate-200">{user.customerId}</TableCell>
+                    <TableCell className="border-slate-200">{user.customerName}</TableCell>
+                    <TableCell className="border-slate-200">{user.phoneNo}</TableCell>
+                    <TableCell className="border-slate-200">{user.location}</TableCell>
+                    <TableCell className="border-slate-200">{user.previousBookings}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Pagination */}
+        <div className="mt-4 flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                {currentPage > 1 ? (
+                  <PaginationPrevious onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} />
+                ) : (
+                  <PaginationPrevious className="pointer-events-none opacity-50" />
+                )}
+              </PaginationItem>
+
+              {Array.from({ length: totalPages }).map((_, idx) => (
+                <PaginationItem key={idx}>
+                  <PaginationLink
+                    onClick={() => setCurrentPage(idx + 1)}
+                    isActive={currentPage === idx + 1}
+                  >
+                    {idx + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                {currentPage < totalPages ? (
+                  <PaginationNext onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} />
+                ) : (
+                  <PaginationNext className="pointer-events-none opacity-50" />
+                )}
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      </CardContent>
     </div>
   );
 }

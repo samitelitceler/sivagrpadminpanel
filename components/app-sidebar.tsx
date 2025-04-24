@@ -1,6 +1,6 @@
 "use client"
-import { Package, ArrowLeftRight, ImageIcon, LayoutGrid } from "lucide-react"
-import { Sidebar, SidebarContent } from "@/components/ui/sidebar"
+import { Package, ArrowLeftRight, ImageIcon ,  LayoutGrid , Notebook , BrickWall ,  Users ,  NotebookText} from "lucide-react"
+import { Sidebar, SidebarContent ,  SidebarGroup, useSidebar  } from "@/components/ui/sidebar"
 import { useState, useEffect } from "react"
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -8,6 +8,7 @@ import Link from 'next/link'
 export function AppSidebar() {
   const [activeUrl, setActiveUrl] = useState<string>("")
   const pathname = usePathname()
+  const { state } = useSidebar()
 
   const items = [
     {
@@ -25,11 +26,26 @@ export function AppSidebar() {
       url: "/referralcode",
       icon: ArrowLeftRight,
     },
-    // {
-    //   title: "Livestream",
-    //   url: "/livestream",
-    //   icon: PlayCircle,
-    // },
+    {
+      title: "Professional Bookings",
+      url: "/professionalbookings",
+      icon: Notebook,
+    },
+    {
+      title: "Raw Material Bookings",
+      url: "/rawmaterialbookings",
+      icon: NotebookText,
+    },
+    {
+      title: "Raw Materials",
+      url: "/rawmaterials",
+      icon: BrickWall,
+    },
+    {
+      title: "Users",
+      url: "/users",
+      icon: Users,
+    },
     {
       title: "Promotion banners",
       url: "/addBanners",
@@ -53,7 +69,10 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarContent className="bg-[#1E1E1E] h-screen w-64 fixed left-0 top-0">
+      <SidebarContent className={`bg-[#1E1E1E] h-screen sticky top-0 transition-all duration-300 ${
+         state === "expanded" ? 'w-64 opacity-100' : 'w-0 opacity-0 overflow-hidden'
+       }`}>
+        <SidebarGroup>
         <nav className="flex flex-col h-full">
           {items.map((item) => (
             <Link 
@@ -72,6 +91,7 @@ export function AppSidebar() {
             </Link>
           ))}
         </nav>
+        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   )

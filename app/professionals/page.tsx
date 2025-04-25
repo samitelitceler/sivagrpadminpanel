@@ -92,16 +92,10 @@ export default function ProfessionalManagement() {
   };
 
   const handleApprove = async (id: string) => {
-    const token = Cookies.get("token");
     try {
       const response = await axios.put(
         `https://server.sivagroupmanpower.com/api/v1/registration-form?id=${id}`, 
         { status: "APPROVED" },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
       );
       
       if (response.status === 200) {

@@ -11,14 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -28,6 +20,8 @@ import {
 import Cookies from "js-cookie";
 import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { Card } from "@/components/ui/card";
+
 interface CategoryItem {
   id: string;
   itemName: string;
@@ -110,16 +104,11 @@ export default function RawMaterials() {
   };
 
   const handleSubmit = async () => {
-    const token = Cookies.get("token");
     try {
       const response = await fetch(
         `https://server.sivagroupmanpower.com/api/v1/raw-material/category-data?categoryId=${formData.categoryId}`,
         {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
           body: JSON.stringify({
             itemName: formData.itemName,
             mrp: parseInt(formData.mrp),
@@ -359,63 +348,84 @@ export default function RawMaterials() {
         {loading ? (
           <div className="text-center py-4">Loading...</div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {categories.map((category) => (
-              <div key={category.id} className="border rounded-lg overflow-hidden">
-               
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader className="bg-black text-white">
-                      <TableRow>
-                        <TableHead>S.No.</TableHead>
-                        <TableHead>Item Name</TableHead>
-                        <TableHead>MRP</TableHead>
-                        <TableHead>Selling Price</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {category.data.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center py-4">
-                            No items in this category
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        category.data.map((item, idx) => (
-                          <TableRow key={item.id}>
-                            <TableCell>{idx + 1}</TableCell>
-                            <TableCell>{item.itemName}</TableCell>
-                            <TableCell>₹{item.mrp}</TableCell>
-                            <TableCell>₹{item.sellingPrice}</TableCell>
-                            <TableCell>{item.quantity}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-blue-600 cursor-pointer hover:text-blue-800"
-                                  onClick={() => handleEdit(item)}
-                                >
-                                  <Pencil className="h-4 w-4 cursor-pointer" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-red-600 cursor-pointer hover:text-red-800"
-                                  onClick={() => handleDelete(item.id)}
-                                >
-                                  <Trash2 className="h-4 w-4 cursor-pointer" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+              <div key={category.id} className="space-y-4">
+                {/* <h2 className="text-xl font-semibold border-b pb-2">{category.name}</h2> */}
+                
+                {category.data.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">
+                    No items in this category
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {category.data.map((item, idx) => (
+                      <Card key={item.id} className="hover:shadow-lg transition-shadow">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                              <h3 className="font-semibold text-lg">{item.itemName}</h3>
+                              <div className="text-sm text-gray-500">Item #{idx + 1}</div>
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800"
+                                onClick={() => handleEdit(item)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                                onClick={() => handleDelete(item.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-500">MRP:</span>
+                              <span className="font-medium">₹{item.mrp}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-500">Selling Price:</span>
+                              <span className="font-medium text-green-600">₹{item.sellingPrice}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-500">Quantity:</span>
+                              <span className="font-medium">{item.quantity}</span>
+                            </div>
+                          </div>
+
+                          <div className="mt-4">
+                            <div className="w-full bg-gray-100 rounded-full h-2">
+                              <div
+                                className={`h-2 rounded-full ${
+                                  item.quantity > 50
+                                    ? 'bg-green-500'
+                                    : item.quantity > 20
+                                    ? 'bg-yellow-500'
+                                    : 'bg-red-500'
+                                }`}
+                                style={{
+                                  width: `${Math.min((item.quantity / 100) * 100, 100)}%`,
+                                }}
+                              />
+                            </div>
+                            <div className="mt-1 text-xs text-gray-500 text-right">
+                              Stock Level
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>

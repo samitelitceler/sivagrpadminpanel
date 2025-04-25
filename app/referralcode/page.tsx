@@ -50,7 +50,7 @@ export default function ReferralCodeManagement() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
     userName: "",
-    phoneNumber: "",
+    phoneNumber: "+91",
     city: "",
     role: "USER"
   });
@@ -118,11 +118,12 @@ export default function ReferralCodeManagement() {
         // Reset form and refresh the list
         setFormData({
           userName: "",
-          phoneNumber: "",
+          phoneNumber: "+91",
           city: "",
           role: "USER"
         });
         fetchReferralCodes();
+        window.location.reload();
       } else {
         toast({
           title: "Error",
@@ -204,13 +205,29 @@ export default function ReferralCodeManagement() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Phone Number</label>
-                <Input
-                  required
-                  value={formData.phoneNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                  placeholder="+919290201010"
-                  className="w-full"
-                />
+                <div className="relative">
+                  <Input
+                    required
+                    value={formData.phoneNumber}
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      if (!value.startsWith('+91')) {
+                        value = '+91' + value.replace(/^\+91/, '');
+                      }
+                      value = value.replace(/[^\d+]/g, '');
+                      if (value.length > 13) {
+                        value = value.slice(0, 13);
+                      }
+                      setFormData(prev => ({ ...prev, phoneNumber: value }));
+                    }}
+                    placeholder="Enter 10 digit number"
+                    className="w-full"
+                    type="tel"
+                    pattern="^\+91\d{10}$"
+                    maxLength={13}
+                  />
+                </div>
+                {/* <p className="text-xs text-gray-500">Format: +91 followed by 10 digits</p> */}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">City</label>

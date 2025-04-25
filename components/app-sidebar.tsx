@@ -1,5 +1,5 @@
 "use client"
-import { Package, ArrowLeftRight, ImageIcon ,  LayoutGrid , Notebook , BrickWall ,  Users , UsersRound ,  NotebookText} from "lucide-react"
+import { Package, ArrowLeftRight ,  LayoutGrid , Notebook , BrickWall ,  Users , UsersRound ,  NotebookText} from "lucide-react"
 import { Sidebar, SidebarContent ,  SidebarGroup, useSidebar  } from "@/components/ui/sidebar"
 import { useState, useEffect } from "react"
 import { usePathname } from 'next/navigation'
@@ -51,11 +51,11 @@ export function AppSidebar() {
       url: "/users",
       icon: Users,
     },
-    {
-      title: "Promotion banners",
-      url: "/addBanners",
-      icon: ImageIcon,
-    },
+    // {
+    //   title: "Promotion banners",
+    //   url: "/addBanners",
+    //   icon: ImageIcon,
+    // },
     // {
     //   title: "Users",
     //   url: "/users",

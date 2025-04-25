@@ -40,7 +40,7 @@ export default function Vendors() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [formData, setFormData] = useState({
         vendorName: "",
-        vendorPhoneNumber: "",
+        vendorPhoneNumber: "+91",
         vendorCity: "",
         pinCode: "",
     });
@@ -108,11 +108,12 @@ export default function Vendors() {
                 // Reset form and refresh the list
                 setFormData({
                     vendorName: "",
-                    vendorPhoneNumber: "",
+                    vendorPhoneNumber: "+91",
                     vendorCity: "",
                     pinCode: "",
                 });
                 fetchVendors();
+                window.location.reload();
             } else {
                 toast({
                     title: "Error",
@@ -134,6 +135,8 @@ export default function Vendors() {
 
     const handleViewDetails = (id: string) => {
         try {
+            // console.log(id);
+            
             router.push(`/vendors/${id}`);
         } catch (error) {
             console.log(error);
@@ -174,13 +177,32 @@ export default function Vendors() {
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Phone Number</label>
-                                <Input
-                                    required
-                                    value={formData.vendorPhoneNumber}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, vendorPhoneNumber: e.target.value }))}
-                                    placeholder="+919290201010"
-                                    className="w-full"
-                                />
+                                <div className="relative">
+                                    <Input
+                                        required
+                                        value={formData.vendorPhoneNumber}
+                                        onChange={(e) => {
+                                            let value = e.target.value;
+                                            // If user tries to delete the +91, keep it
+                                            if (!value.startsWith('+91')) {
+                                                value = '+91' + value.replace(/^\+91/, '');
+                                            }
+                                            // Remove any non-digit characters except the +
+                                            value = value.replace(/[^\d+]/g, '');
+                                            // Limit to +91 and 10 digits
+                                            if (value.length > 13) {
+                                                value = value.slice(0, 13);
+                                            }
+                                            setFormData(prev => ({ ...prev, vendorPhoneNumber: value }));
+                                        }}
+                                        placeholder="Enter 10 digit number"
+                                        className="w-full"
+                                        type="tel"
+                                        pattern="^\+91\d{10}$"
+                                        maxLength={13}
+                                    />
+                                </div>
+                                {/* <p className="text-xs text-gray-500">Format: +91 followed by 10 digits</p> */}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">City</label>

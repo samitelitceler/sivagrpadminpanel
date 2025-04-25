@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Cookies from "js-cookie";
 import { useToast } from "@/hooks/use-toast";
 
 interface VendorDetails {
@@ -48,22 +47,28 @@ interface ApiResponse {
   };
 }
 
-export default function VendorDetails({ params }: { params: Promise<{ id: string }> }) {
+export default function VendorDetails({ params }: { params: Promise<{ vendorId: string }> }) {
   const { toast } = useToast();
   const [data, setData] = useState<ApiResponse["data"] | null>(null);
   const [loading, setLoading] = useState(true);
-  const { id } = use(params);
+  
+  // Unwrap params using React.use()
+  const { vendorId } = use(params);
+  
   useEffect(() => {
     const fetchDetails = async () => {
-      const token = Cookies.get("token");
+      if (!vendorId) {
+        toast({
+          title: "Error",
+          description: "No vendor ID provided",
+          variant: "destructive"
+        });
+        return;
+      }
+
       try {
         const response = await fetch(
-          `https://server.sivagroupmanpower.com/api/v1/vendor/details?id=${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          `https://server.sivagroupmanpower.com/api/v1/vendor/details?id=${vendorId}`,
         );
         const result = await response.json();
         if (result.success) {
@@ -93,7 +98,7 @@ export default function VendorDetails({ params }: { params: Promise<{ id: string
     };
 
     fetchDetails();
-  }, [id, toast]);
+  }, [vendorId, toast]);
 
   if (loading) {
     return (

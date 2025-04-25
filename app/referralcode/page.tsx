@@ -22,6 +22,8 @@ import Cookies from "js-cookie";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 interface ReferralCode {
   id: string;
@@ -52,6 +54,8 @@ export default function ReferralCodeManagement() {
     city: "",
     role: "USER"
   });
+  const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchReferralCodes();
@@ -66,9 +70,22 @@ export default function ReferralCodeManagement() {
         }
       });
       const data = await response.json();
-      setReferralCodes(data.data || []);
+      if (data.success) {
+        setReferralCodes(data.data || []);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch referral codes",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('Error fetching referral codes:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong while loading referral codes",
+        variant: "destructive"
+      });
       setReferralCodes([]);
     } finally {
       setLoading(false);
@@ -81,7 +98,7 @@ export default function ReferralCodeManagement() {
     const token = Cookies.get("token");
 
     try {
-      await axios.post(
+      const response = await axios.post(
         'https://server.sivagroupmanpower.com/api/v1/referral/generate',
         formData,
         {
@@ -90,20 +107,52 @@ export default function ReferralCodeManagement() {
           }
         }
       );
-      
-      // Reset form and refresh the list
-      setFormData({
-        userName: "",
-        phoneNumber: "",
-        city: "",
-        role: "USER"
-      });
-      fetchReferralCodes();
-      window.location.reload();
+
+      if (response.data.success) {
+        toast({
+          title: "Success",
+          description: "Referral code generated successfully",
+          className: "bg-green-600 text-white"
+        });
+        
+        // Reset form and refresh the list
+        setFormData({
+          userName: "",
+          phoneNumber: "",
+          city: "",
+          role: "USER"
+        });
+        fetchReferralCodes();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to generate referral code",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('Error generating referral code:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong while generating referral code",
+        variant: "destructive"
+      });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleViewDetails = (id: string) => {
+    try {
+      router.push(`/referralcode/${id}`);
+    } catch (error) {
+      console.log(error);
+      
+      toast({
+        title: "Error",
+        description: "Failed to navigate to referral details",
+        variant: "destructive"
+      });
     }
   };
 
@@ -173,8 +222,8 @@ export default function ReferralCodeManagement() {
                   className="w-full"
                 />
               </div>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-black text-white hover:bg-gray-800"
                 disabled={isGenerating}
               >
@@ -190,17 +239,16 @@ export default function ReferralCodeManagement() {
           <div className="flex flex-wrap gap-3">
             {[
               { label: "All Referrals", value: "all" },
-            //   { label: "Verified", value: "verified" },
-            //   { label: "Pending", value: "pending" },
+              //   { label: "Verified", value: "verified" },
+              //   { label: "Pending", value: "pending" },
             ].map((filter) => (
               <button
                 key={filter.value}
                 onClick={() => setActiveFilter(filter.value)}
-                className={`px-4 py-1 rounded-full font-medium ${
-                  activeFilter === filter.value
+                className={`px-4 py-1 rounded-full font-medium ${activeFilter === filter.value
                     ? "bg-black text-white"
                     : "bg-transparent border border-black text-black"
-                }`}
+                  }`}
               >
                 {filter.label}
               </button>
@@ -257,34 +305,12 @@ export default function ReferralCodeManagement() {
                     <TableCell className="border-slate-200">{code?.totalReferred || 0}</TableCell>
                     <TableCell className="border-slate-200">₹{code?.totalEarnings || '0'}</TableCell>
                     <TableCell className="border-slate-200">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button className="text-black underline p-0">View Details</Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Referral Details</DialogTitle>
-                          </DialogHeader>
-                          <table className="w-full mt-4 text-center">
-                            <thead>
-                              <tr>
-                                <th className="py-2">Person Name</th>
-                                <th className="py-2">Mobile No</th>
-                                <th className="py-2">Referral Code</th>
-                                <th className="py-2">Total Referred</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <td className="py-2">{code?.userName}</td>
-                                <td className="py-2">{code?.phoneNumber}</td>
-                                <td className="py-2">{code?.code}</td>
-                                <td className="py-2">{code?.totalReferred}</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </DialogContent>
-                      </Dialog>
+                      <Button 
+                        className="text-black underline p-0 cursor-pointer" 
+                        onClick={() => handleViewDetails(code.id)}
+                      >
+                        View Details
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

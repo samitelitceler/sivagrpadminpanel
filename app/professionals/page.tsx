@@ -22,6 +22,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from 
 // import { MapPin } from "lucide-react";
 import Cookies from "js-cookie";
 import axios from "axios";
+import { useToast } from "@/hooks/use-toast";
 
 interface Professional {
   id: string;
@@ -38,6 +39,11 @@ interface Professional {
   workingExperience: string;
   serviceType: string;
   createdAt: string;
+  govtIDfront: string;
+  govtIDback: string;
+  govtID: string;
+  withUniformPicture: string[];
+  withoutUniformPicture: string[];
   // ... other fields as needed
 }
 
@@ -48,6 +54,7 @@ export default function ProfessionalManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchProfessionals();
@@ -62,9 +69,22 @@ export default function ProfessionalManagement() {
         }
       });
       const data = await response.json();
-      setProfessionals(data.data || []);
+      if (data.success) {
+        setProfessionals(data.data || []);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch professionals",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('Error fetching professionals:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load professionals",
+        variant: "destructive"
+      });
       setProfessionals([]);
     } finally {
       setLoading(false);
@@ -74,7 +94,7 @@ export default function ProfessionalManagement() {
   const handleApprove = async (id: string) => {
     const token = Cookies.get("token");
     try {
-      await axios.put(
+      const response = await axios.put(
         `https://server.sivagroupmanpower.com/api/v1/registration-form?id=${id}`, 
         { status: "APPROVED" },
         {
@@ -83,16 +103,35 @@ export default function ProfessionalManagement() {
           }
         }
       );
-      fetchProfessionals();
+      
+      if (response.status === 200) {
+        toast({
+          title: "Success",
+          description: "Professional approved successfully",
+          className: 'bg-green-600 text-white'
+        });
+        fetchProfessionals();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to approve professional",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('Error approving professional:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong while approving",
+        variant: "destructive"
+      });
     }
   };
 
   const handleReject = async (id: string) => {
     const token = Cookies.get("token");
     try {
-      await axios.put(
+      const response = await axios.put(
         `https://server.sivagroupmanpower.com/api/v1/registration-form?id=${id}`, 
         { status: "REJECTED" },
         {
@@ -101,9 +140,28 @@ export default function ProfessionalManagement() {
           }
         }
       );
-      fetchProfessionals();
+      
+      if (response.status === 200) {
+        toast({
+          title: "Success",
+          description: "Professional rejected successfully",
+          className: 'bg-green-600 text-white'
+        });
+        fetchProfessionals();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to reject professional",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('Error rejecting professional:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong while rejecting",
+        variant: "destructive"
+      });
     }
   };
 
@@ -235,7 +293,7 @@ export default function ProfessionalManagement() {
                             View Details
                           </button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>{professional.fullName} – Details</DialogTitle>
                           </DialogHeader>
@@ -252,6 +310,53 @@ export default function ProfessionalManagement() {
                             <div><span className="font-semibold">Current Address:</span> {professional.currentAddress}</div>
                             <div><span className="font-semibold">Status:</span> {professional.status}</div>
                             <div><span className="font-semibold">Registered On:</span> {new Date(professional.createdAt).toLocaleString()}</div>
+                            
+                            <div className="col-span-2">
+                              <h3 className="font-semibold text-lg mb-2">Government ID</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                  <p className="font-semibold mb-1">ID Number: {professional.govtID}</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="col-span-2">
+                              <h3 className="font-semibold text-lg mb-2">Pictures with Uniform</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {professional.withUniformPicture.map((url, index) => (
+                                  <div key={`uniform-${index}`}>
+                                    <p className="font-semibold mb-1">Picture {index + 1}</p>
+                                    <a 
+                                      href={url} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer" 
+                                      className="text-blue-600 hover:text-blue-800 underline"
+                                    >
+                                      Download Image
+                                    </a>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="col-span-2">
+                              <h3 className="font-semibold text-lg mb-2">Pictures without Uniform</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {professional.withoutUniformPicture.map((url, index) => (
+                                  <div key={`without-uniform-${index}`}>
+                                    <p className="font-semibold mb-1">Picture {index + 1}</p>
+                                    <a 
+                                      href={url} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer" 
+                                      className="text-blue-600 hover:text-blue-800 underline"
+                                    >
+                                      Download Image
+                                    </a>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           </div>
                         </DialogContent>
                       </Dialog>

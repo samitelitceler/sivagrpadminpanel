@@ -1,6 +1,5 @@
 "use client";
-import { useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { useState, useEffect } from "react";
 import { CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,162 +18,336 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-interface Category {
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import Cookies from "js-cookie";
+import { Pencil, Trash2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+interface CategoryItem {
   id: string;
-  type: string;
-  item: string;
+  itemName: string;
   mrp: number;
   sellingPrice: number;
-  discount: number;
-  imageUrl: string;
   quantity: number;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  data: CategoryItem[];
+}
+
 interface FormData {
-  type: string;
-  item: string;
+  categoryId: string;
+  itemName: string;
   mrp: string;
   sellingPrice: string;
-  discount: string;
-  imageFile: File | null;
   quantity: string;
 }
 
 export default function RawMaterials() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<FormData>({
-    type: "",
-    item: "",
+    categoryId: "",
+    itemName: "",
     mrp: "",
     sellingPrice: "",
-    discount: "",
-    imageFile: null,
     quantity: "",
   });
   const [isAddOpen, setIsAddOpen] = useState(false);
-//   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<CategoryItem | null>(null);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+
+  const fetchCategories = async () => {
+    const token = Cookies.get("token");
+    try {
+      const response = await fetch('https://server.sivagroupmanpower.com/api/v1/raw-material/category', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const result = await response.json();
+      if (result.status === 200) {
+        setCategories(result.data);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch categories",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load categories",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const resetForm = () => {
     setFormData({
-      type: "",
-      item: "",
+      categoryId: "",
+      itemName: "",
       mrp: "",
       sellingPrice: "",
-      discount: "",
-      imageFile: null,
       quantity: "",
     });
-    setEditingId(null);
   };
 
-  const handleSubmit = () => {
-    const previewUrl = formData.imageFile
-      ? URL.createObjectURL(formData.imageFile)
-      : ""
-
-    const newCat: Category = {
-      id: editingId || uuidv4(),
-      type: formData.type,
-      item: formData.item,
-      mrp: parseFloat(formData.mrp),
-      sellingPrice: parseFloat(formData.sellingPrice),
-      discount: parseFloat(formData.discount),
-      imageUrl: previewUrl,
-      quantity: parseInt(formData.quantity, 10),
-    };
-
-    if (editingId) {
-      setCategories((prev) =>
-        prev.map((c) => (c.id === editingId ? newCat : c))
+  const handleSubmit = async () => {
+    const token = Cookies.get("token");
+    try {
+      const response = await fetch(
+        `https://server.sivagroupmanpower.com/api/v1/raw-material/category-data?categoryId=${formData.categoryId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            itemName: formData.itemName,
+            mrp: parseInt(formData.mrp),
+            sellingPrice: parseInt(formData.sellingPrice),
+            quantity: parseInt(formData.quantity),
+          }),
+        }
       );
-    } else {
-      setCategories((prev) => [newCat, ...prev]);
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Item uploaded successfully",
+          className: 'bg-green-600 text-white'
+        })
+        resetForm();
+        setIsAddOpen(false);
+        fetchCategories();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to add item",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding item:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong while adding the item",
+        variant: "destructive",
+      });
     }
-
-    resetForm();
-    setIsAddOpen(false);
-    // setIsEditOpen(false);
   };
 
-  const handleEdit = (cat: Category) => {
-    setEditingId(cat.id);
+  const handleDelete = async (id: string) => {
+    const token = Cookies.get("token");
+    try {
+      const response = await fetch(
+        `https://server.sivagroupmanpower.com/api/v1/raw-material/category-data?id=${id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Item deleted successfully",
+          variant: "default",
+          className: 'bg-green-600 text-white'
+        });
+        fetchCategories();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete item",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong while deleting the item",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = (item: CategoryItem) => {
+    setEditingItem(item);
     setFormData({
-      type: cat.type,
-      item: cat.item,
-      mrp: cat.mrp.toString(),
-      sellingPrice: cat.sellingPrice.toString(),
-      discount: cat.discount.toString(),
-      imageFile: null,
-      quantity: cat.quantity.toString(),
+      categoryId: "",
+      itemName: item.itemName,
+      mrp: item.mrp.toString(),
+      sellingPrice: item.sellingPrice.toString(),
+      quantity: item.quantity.toString(),
     });
-    // setIsEditOpen(true);
+    setIsEditOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setCategories((prev) => prev.filter((c) => c.id !== id));
+  const handleEditSubmit = async () => {
+    if (!editingItem) return;
+    
+    const token = Cookies.get("token");
+    try {
+      const response = await fetch(
+        `https://server.sivagroupmanpower.com/api/v1/raw-material/category-data?id=${editingItem.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            itemName: formData.itemName,
+            mrp: parseInt(formData.mrp),
+            sellingPrice: parseInt(formData.sellingPrice),
+            quantity: parseInt(formData.quantity),
+          }),
+        }
+      );
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Item updated successfully",
+          variant: "default",
+          className: 'bg-green-600 text-white'
+        });
+        setIsEditOpen(false);
+        setEditingItem(null);
+        resetForm();
+        fetchCategories();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update item",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error updating item:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong while updating the item",
+        variant: "destructive",
+      });
+    }
   };
+  
 
   return (
-    <div className="p-12 space-y-4 max-w-6xl mx-auto">
+    <div className="p-12 space-y-4 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <CardTitle className="text-2xl font-medium">
           Raw Materials Categories
         </CardTitle>
-        {/* Add New Category */}
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-black text-white hover:bg-gray-800">
-              + Add Category
+            <Button className="bg-black cursor-pointer text-white hover:bg-gray-800">
+              + Add Item
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>
-                {editingId ? "Edit Category" : "New Category"}
-              </DialogTitle>
+              <DialogTitle>Add New Item</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
-              {[
-                { label: "Category Type", name: "type" },
-                { label: "Item Name", name: "item" },
-                { label: "MRP", name: "mrp" },
-                { label: "Selling Price", name: "sellingPrice" },
-                { label: "Discount", name: "discount" },
-                { label: "Image File", name: "imageFile" },
-                { label: "Quantity", name: "quantity" },
-              ].map(({ label, name }) => (
-                <div key={name} className="space-y-1">
-                  <label className="block text-sm font-medium">{label}</label>
-                  <Input
-                    type={name === "imageFile" ? "file" : "text"}
-                    accept={name === "imageFile" ? "image/*" : undefined}
-                    onChange={(e) => {
-                      if (name === "imageFile") {
-                        const file = e.target.files?.[0] || null
-                        setFormData((f) => ({ ...f, imageFile: file }))
-                      } else {
-                        setFormData((f) => ({ ...f, [name]: e.target.value }))
-                      }
-                    }}
-                    className="w-full"
-                  />
-                </div>
-              ))}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Category</label>
+                <Select
+                  value={formData.categoryId}
+                  onValueChange={(value) => 
+                    setFormData(prev => ({ ...prev, categoryId: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Item Name</label>
+                <Input
+                  value={formData.itemName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, itemName: e.target.value }))}
+                  placeholder="Enter item name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">MRP</label>
+                <Input
+                  type="number"
+                  value={formData.mrp}
+                  onChange={(e) => setFormData(prev => ({ ...prev, mrp: e.target.value }))}
+                  placeholder="Enter MRP"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Selling Price</label>
+                <Input
+                  type="number"
+                  value={formData.sellingPrice}
+                  onChange={(e) => setFormData(prev => ({ ...prev, sellingPrice: e.target.value }))}
+                  placeholder="Enter selling price"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Quantity</label>
+                <Input
+                  type="number"
+                  value={formData.quantity}
+                  onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
+                  placeholder="Enter quantity"
+                />
+              </div>
+
               <div className="flex justify-end space-x-2 pt-4">
                 <Button
                   variant="outline"
                   onClick={() => {
                     resetForm();
                     setIsAddOpen(false);
-                    // setIsEditOpen(false);
                   }}
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleSubmit}>
-                  {editingId ? "Update" : "Create"}
+                <Button 
+                  className="bg-black text-white hover:bg-gray-800"
+                  onClick={handleSubmit}
+                >
+                  Add Item
                 </Button>
               </div>
             </div>
@@ -183,72 +356,138 @@ export default function RawMaterials() {
       </div>
 
       <CardContent>
-        <div className="overflow-auto rounded border border-slate-200">
-          <Table>
-            <TableHeader className="bg-black text-white">
-              <TableRow>
-                <TableHead>S.No.</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Item</TableHead>
-                <TableHead>MRP</TableHead>
-                <TableHead>Sell Price</TableHead>
-                <TableHead>Discount</TableHead>
-                {/* <TableHead>Image</TableHead> */}
-                <TableHead>Qty</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center py-4">
-                    No categories added
-                  </TableCell>
-                </TableRow>
-              ) : (
-                categories.map((c, idx) => (
-                  <TableRow key={c.id}>
-                    <TableCell>{idx + 1}</TableCell>
-                    <TableCell>{c.type}</TableCell>
-                    <TableCell>{c.item}</TableCell>
-                    <TableCell>₹{c.mrp}</TableCell>
-                    <TableCell>₹{c.sellingPrice}</TableCell>
-                    <TableCell>{c.discount}%</TableCell>
-                    {/* <TableCell>
-                      {c.imageUrl ? (
-                        <img
-                          src={c.imageUrl}
-                          alt={c.item}
-                          className="w-16 h-16 object-cover rounded"
-                        />
+        {loading ? (
+          <div className="text-center py-4">Loading...</div>
+        ) : (
+          <div className="space-y-6">
+            {categories.map((category) => (
+              <div key={category.id} className="border rounded-lg overflow-hidden">
+               
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-black text-white">
+                      <TableRow>
+                        <TableHead>S.No.</TableHead>
+                        <TableHead>Item Name</TableHead>
+                        <TableHead>MRP</TableHead>
+                        <TableHead>Selling Price</TableHead>
+                        <TableHead>Quantity</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {category.data.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-4">
+                            No items in this category
+                          </TableCell>
+                        </TableRow>
                       ) : (
-                        "—"
+                        category.data.map((item, idx) => (
+                          <TableRow key={item.id}>
+                            <TableCell>{idx + 1}</TableCell>
+                            <TableCell>{item.itemName}</TableCell>
+                            <TableCell>₹{item.mrp}</TableCell>
+                            <TableCell>₹{item.sellingPrice}</TableCell>
+                            <TableCell>{item.quantity}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-blue-600 cursor-pointer hover:text-blue-800"
+                                  onClick={() => handleEdit(item)}
+                                >
+                                  <Pencil className="h-4 w-4 cursor-pointer" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-red-600 cursor-pointer hover:text-red-800"
+                                  onClick={() => handleDelete(item.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 cursor-pointer" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
                       )}
-                    </TableCell> */}
-                    <TableCell>{c.quantity}</TableCell>
-                    <TableCell className="space-x-2">
-                      <Button
-                        variant="link"
-                        className="p-0 underline"
-                        onClick={() => handleEdit(c)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="link"
-                        className="p-0 underline text-red-600"
-                        onClick={() => handleDelete(c.id)}
-                      >
-                        Delete
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
+
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Item</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Item Name</label>
+              <Input
+                value={formData.itemName}
+                onChange={(e) => setFormData(prev => ({ ...prev, itemName: e.target.value }))}
+                placeholder="Enter item name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">MRP</label>
+              <Input
+                type="number"
+                value={formData.mrp}
+                onChange={(e) => setFormData(prev => ({ ...prev, mrp: e.target.value }))}
+                placeholder="Enter MRP"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Selling Price</label>
+              <Input
+                type="number"
+                value={formData.sellingPrice}
+                onChange={(e) => setFormData(prev => ({ ...prev, sellingPrice: e.target.value }))}
+                placeholder="Enter selling price"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Quantity</label>
+              <Input
+                type="number"
+                value={formData.quantity}
+                onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
+                placeholder="Enter quantity"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  resetForm();
+                  setIsEditOpen(false);
+                  setEditingItem(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="bg-black text-white hover:bg-gray-800"
+                onClick={handleEditSubmit}
+              >
+                Update Item
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -145,6 +145,8 @@ export default function ReferralCodeManagement() {
 
   const handleViewDetails = (id: string) => {
     try {
+      console.log("clicked");
+      
       router.push(`/referralcode/${id}`);
     } catch (error) {
       console.log(error);

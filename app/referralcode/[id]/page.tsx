@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Cookies from "js-cookie";
 import { useToast } from "@/hooks/use-toast";
 
 interface Registration {
@@ -55,6 +54,7 @@ export default function ReferralDetails({ params }: { params: Promise<{ id: stri
   const [data, setData] = useState<ApiResponse["data"] | null>(null);
   const [loading, setLoading] = useState(true);
   const { id } = use(params);
+  
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -68,28 +68,14 @@ export default function ReferralDetails({ params }: { params: Promise<{ id: stri
         return;
       }
 
-      const token = Cookies.get("token");
-      if (!token) {
-        toast({
-          title: "Error",
-          description: "Authentication token not found",
-          variant: "destructive"
-        });
-        return;
-      }
+
 
       try {
         const response = await fetch(
-          `https://server.sivagroupmanpower.com/api/v1/referral/details?id=${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+          `https://server.sivagroupmanpower.com/api/v1/referral/details?id=${id}`);
         const result = await response.json();
         console.log("API Response:", result);
-        
+
         if (result.success) {
           setData(result.data);
           toast({
@@ -222,13 +208,12 @@ export default function ReferralDetails({ params }: { params: Promise<{ id: stri
                   <TableCell>{registration.phoneNumber}</TableCell>
                   <TableCell>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        registration.status === "APPROVED"
+                      className={`px-2 py-1 rounded-full text-xs ${registration.status === "APPROVED"
                           ? "bg-green-100 text-green-800"
                           : registration.status === "PENDING"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
                     >
                       {registration.status}
                     </span>
